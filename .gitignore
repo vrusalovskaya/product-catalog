@@ -1,0 +1,45 @@
+# --- Maven ---
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+build.log
+.incremental/
+
+# --- IntelliJ IDEA ---
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.idea/runConfigurations/
+
+# --- Eclipse ---
+.settings/
+.project
+.classpath
+.factorypath
+.metadata/
+bin/
+*.tmp
+*.bak
+*.swp
+
+# --- Visual Studio Code ---
+.vscode/
+
+# --- Operating System Files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Log Files ---
+*.log
+logs/
+
+# --- Environment & Secrets ---
+application-local.properties
+.env
