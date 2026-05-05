@@ -1,6 +1,7 @@
 package org.catalog.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.catalog.entities.CategoryEntity;
 import org.catalog.entities.ProductEntity;
 import org.catalog.entities.ReviewEntity;
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DatabaseSeeder {
 
     private final SessionFactory sessionFactory;
@@ -29,9 +31,9 @@ public class DatabaseSeeder {
                 .getSingleResult();
 
         if (productCount == 0) {
-            System.out.println("Database is empty. Starting seeding process...");
+            log.info("Database is empty. Starting seeding process...");
             createData(session);
-            System.out.println("Seeding completed successfully.");
+            log.info("Seeding completed successfully.");
         }
     }
 

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @AllArgsConstructor
@@ -19,15 +20,18 @@ public class ProductRepositoryImpl implements ProductRepository {
     private final SessionFactory sessionFactory;
 
     @Override
-    public ProductEntity findById(Long id) {
+    public Optional<ProductEntity> findById(Long id) {
         Session session = sessionFactory.getCurrentSession();
 
-        CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery<ProductEntity> cq = cb.createQuery(ProductEntity.class);
-        Root<ProductEntity> root = cq.from(ProductEntity.class);
-        cq.select(root).where(cb.equal(root.get(ProductEntity_.id), id));
+        return Optional.ofNullable(session.find(ProductEntity.class, id));
+    }
 
-        return session.createQuery(cq).getSingleResult();
+    @Override
+    public Optional<ProductEntity> findBySku(String sku) {
+        return Optional.ofNullable(sessionFactory.getCurrentSession()
+                .byNaturalId(ProductEntity.class)
+                .using("sku", sku)
+                .load());
     }
 
     @Override
@@ -54,11 +58,17 @@ public class ProductRepositoryImpl implements ProductRepository {
         Root<ProductEntity> product = cq.from(ProductEntity.class);
 
         Join<ProductEntity, ReviewEntity> reviews = product.join(ProductEntity_.reviewEntities, JoinType.LEFT);
+        Expression<Double> avgRating = cb.coalesce(
+                cb.avg(reviews.get(ReviewEntity_.rating)),
+                0.0
+        );
 
         cq.select(product)
-                .groupBy(product.get(ProductEntity_.id))
-                .orderBy(cb.desc(cb.avg(reviews.get(ReviewEntity_.rating))));
-
+                .groupBy(product.get(ProductEntity_.id),
+                        product.get(ProductEntity_.name),
+                        product.get(ProductEntity_.price),
+                        product.get(ProductEntity_.sku))
+                .orderBy(cb.desc(avgRating));
         return session.createSelectionQuery(cq)
                 .setMaxResults(limit)
                 .getResultList();
@@ -91,7 +101,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         List<Predicate> predicates = new ArrayList<>();
 
         if (criteria.name() != null) {
-            predicates.add(cb.equal(root.get(ProductEntity_.name), criteria.name()));
+            predicates.add(cb.like(root.get(ProductEntity_.name), "%" + criteria.name() + "%"));
         }
 
         if (criteria.minPrice() != null) {

@@ -1,7 +1,6 @@
 package org.catalog;
 
 import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRegistration;
 import org.catalog.configs.PersistenceConfig;
 import org.catalog.configs.WebConfig;

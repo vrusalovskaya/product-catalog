@@ -10,6 +10,8 @@ public interface ProductService {
 
     Product findById(Long id);
 
+    Product findBySku(String sku);
+
     List<Product> search(ProductSearchCriteria criteria);
 
     List<Product> findTopRated(int limit);

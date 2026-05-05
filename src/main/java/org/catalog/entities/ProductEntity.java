@@ -6,6 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.NaturalId;
+import org.hibernate.annotations.NaturalIdCache;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -17,6 +21,8 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@NaturalIdCache(region = "product-natural-id-cache")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "product-cache")
 public class ProductEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +36,7 @@ public class ProductEntity {
     private BigDecimal price;
 
     @Column(length = 50, nullable = false, unique = true)
+    @NaturalId
     private String sku;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -1,54 +1,41 @@
 package org.catalog.configs;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.core.env.Environment;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import javax.sql.DataSource;
+import java.util.Objects;
 import java.util.Properties;
 
 @Configuration
 @EnableTransactionManagement
-@ComponentScan("org.catalog")
+@ComponentScan({"org.catalog.services", "org.catalog.repositories", "org.catalog.mappers"})
 @PropertySource("classpath:application.properties")
 public class PersistenceConfig {
-    @Value("${db.url}")
-    private String url;
-    @Value("${db.username}")
-    private String username;
-    @Value("${db.password}")
-    private String password;
-    @Value("${db.driver}")
-    private String driver;
 
-    @Value("${hibernate.dialect}")
-    private String dialect;
-    @Value("${hibernate.hbm2ddl.auto}")
-    private String ddlAuto;
-    @Value("${hibernate.show_sql}")
-    private String showSql;
+    @Autowired
+    private Environment env;
 
     @Bean
     public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setUrl(url);
-        dataSource.setUsername(username);
-        dataSource.setPassword(password);
-        dataSource.setDriverClassName(driver);
-        return dataSource;
-    }
-
-    @Bean
-    public LocalValidatorFactoryBean validator() {
-        return new LocalValidatorFactoryBean();
+        HikariConfig cfg = new HikariConfig();
+        cfg.setJdbcUrl(env.getProperty("db.url"));
+        cfg.setUsername(env.getProperty("db.username"));
+        cfg.setPassword(env.getProperty("db.password"));
+        cfg.setDriverClassName(Objects.requireNonNull(env.getProperty("db.driver")));
+        cfg.setMaximumPoolSize(10);
+        return new HikariDataSource(cfg);
     }
 
     @Bean
@@ -57,23 +44,47 @@ public class PersistenceConfig {
         sessionFactory.setDataSource(dataSource);
         sessionFactory.setPackagesToScan("org.catalog.entities");
 
-        sessionFactory.getHibernateProperties().put(
-                "jakarta.persistence.validation.factory", validator
-        );
-
-        Properties hibernateProperties = new Properties();
-        hibernateProperties.put("hibernate.dialect", dialect);
-        hibernateProperties.put("hibernate.show_sql", showSql);
-        hibernateProperties.put("hibernate.hbm2ddl.auto", ddlAuto);
-
-        sessionFactory.setHibernateProperties(hibernateProperties);
+        Properties props = hibernateProperties();
+        props.put("jakarta.persistence.validation.factory", validator);
+        sessionFactory.setHibernateProperties(props);
         return sessionFactory;
     }
 
     @Bean
     public HibernateTransactionManager transactionManager(SessionFactory sessionFactory) {
-        HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-        transactionManager.setSessionFactory(sessionFactory);
-        return transactionManager;
+        return new HibernateTransactionManager(sessionFactory);
+    }
+
+    @Bean
+    public LocalValidatorFactoryBean validator() {
+        return new LocalValidatorFactoryBean();
+    }
+
+    private Properties hibernateProperties() {
+        Properties properties = new Properties();
+
+        String[] propertyKeys =
+                {
+                        "hibernate.dialect",
+                        "hibernate.hbm2ddl.auto",
+                        "hibernate.show_sql",
+                        "hibernate.cache.use_second_level_cache",
+                        "hibernate.cache.use_query_cache",
+                        "hibernate.cache.region.factory_class",
+                        "hibernate.javax.cache.provider",
+                        "jakarta.persistence.sharedCache.mode",
+                        "hibernate.generate_statistics",
+                        "hibernate.javax.cache.missing_cache_strategy",
+                        "hibernate.javax.cache.uri"
+                };
+
+        for (String key : propertyKeys) {
+            String value = env.getProperty(key);
+            if (value != null) {
+                properties.put(key, value);
+            }
+        }
+
+        return properties;
     }
 }

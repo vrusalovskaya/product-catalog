@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -25,7 +24,15 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public Product findById(Long id) {
-        ProductEntity entity = Optional.ofNullable(productRepository.findById(id))
+        ProductEntity entity = productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found"));
+        return productMapper.toProduct(entity);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Product findBySku(String sku) {
+        ProductEntity entity = productRepository.findBySku(sku)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
         return productMapper.toProduct(entity);
     }

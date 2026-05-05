@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "category-cache")
 public class CategoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,5 +31,6 @@ public class CategoryEntity {
     private CategoryEntity parentEntity;
 
     @OneToMany(mappedBy = "categoryEntity")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "category-products-cache")
     private List<ProductEntity> productEntities = new ArrayList<>();
 }

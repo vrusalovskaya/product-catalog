@@ -1,7 +1,7 @@
 package org.catalog.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +17,7 @@ public class WarehouseInventoryEntity {
     @Id
     private Long id;
 
-    @Positive
+    @PositiveOrZero
     @Column(nullable = false)
     private Integer quantity;
 
