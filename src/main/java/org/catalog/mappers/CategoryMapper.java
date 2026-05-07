@@ -12,4 +12,8 @@ public interface CategoryMapper {
     @Mapping(target = "parentId", source = "parentEntity.id")
     @Mapping(target = "parentName", source = "parentEntity.name")
     Category toRecord(CategoryEntity entity);
+
+    @Mapping(target = "parentEntity.id", source = "parentId")
+    @Mapping(target = "parentEntity.name", source = "parentName")
+    CategoryEntity toEntity(Category category);
 }

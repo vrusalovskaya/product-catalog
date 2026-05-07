@@ -10,6 +10,8 @@ import java.util.Optional;
 public interface ProductRepository {
     Optional<ProductEntity> findById(Long id);
 
+    Optional<ProductEntity> findWithFetch(Long id);
+
     Optional<ProductEntity> findBySku(String sku);
 
     List<ProductEntity> search(ProductSearchCriteria criteria);
@@ -17,4 +19,8 @@ public interface ProductRepository {
     List<ProductEntity> findTopRated(int limit);
 
     List<Tuple> getProductSummaries();
+
+    ProductEntity save(ProductEntity entity);
+
+    void delete(Long id);
 }

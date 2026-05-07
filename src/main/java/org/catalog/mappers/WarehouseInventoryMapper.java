@@ -8,4 +8,6 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface WarehouseInventoryMapper {
     WarehouseInventory toRecord(WarehouseInventoryEntity entity);
+
+    WarehouseInventoryEntity toEntity(WarehouseInventory record);
 }

@@ -8,4 +8,6 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ReviewMapper {
     Review toRecord(ReviewEntity entity);
+
+    ReviewEntity toEntity(Review review);
 }

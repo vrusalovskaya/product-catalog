@@ -1,5 +1,6 @@
 package org.catalog.repositories;
 
+import jakarta.persistence.EntityGraph;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.*;
 import lombok.AllArgsConstructor;
@@ -9,9 +10,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @AllArgsConstructor
@@ -24,6 +23,19 @@ public class ProductRepositoryImpl implements ProductRepository {
         Session session = sessionFactory.getCurrentSession();
 
         return Optional.ofNullable(session.find(ProductEntity.class, id));
+    }
+
+    @Override
+    public Optional<ProductEntity> findWithFetch(Long id) {
+        Session session = sessionFactory.getCurrentSession();
+        EntityGraph<ProductEntity> graph = session.createEntityGraph(ProductEntity.class);
+        graph.addAttributeNodes("categoryEntity", "inventoryEntity", "reviewEntities");
+
+        Map<String, Object> hints = new HashMap<>();
+        hints.put("jakarta.persistence.fetchgraph", graph);
+
+        ProductEntity product = session.find(ProductEntity.class, id, hints);
+        return Optional.ofNullable(product);
     }
 
     @Override
@@ -95,6 +107,23 @@ public class ProductRepositoryImpl implements ProductRepository {
         return session.createSelectionQuery(cq)
                 .setCacheable(true)
                 .getResultList();
+    }
+
+    @Override
+    public ProductEntity save(ProductEntity entity) {
+        Session session = sessionFactory.getCurrentSession();
+        session.persist(entity);
+        return entity;
+    }
+
+    @Override
+    public void delete(Long id) {
+        Session session = sessionFactory.getCurrentSession();
+
+        ProductEntity loadedEntity = session.find(ProductEntity.class, id);
+        if (loadedEntity != null) {
+            session.remove(loadedEntity);
+        }
     }
 
     private static List<Predicate> parseCriteria(ProductSearchCriteria criteria, CriteriaBuilder cb, Root<ProductEntity> root) {

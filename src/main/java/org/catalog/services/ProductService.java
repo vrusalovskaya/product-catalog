@@ -17,4 +17,10 @@ public interface ProductService {
     List<Product> findTopRated(int limit);
 
     List<ProductSummary> getProductSummaries();
+
+    Product save(Product product);
+
+    Product update(Product product);
+
+    void delete(Long id);
 }
