@@ -5,6 +5,7 @@ import org.catalog.entities.CategoryEntity;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor
@@ -13,8 +14,9 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     private final SessionFactory sessionFactory;
 
     @Override
+    @Transactional
     public CategoryEntity getReference(Long id) {
-        Session session = sessionFactory.openSession();
+        Session session = sessionFactory.getCurrentSession();
 
         return session.getReference(CategoryEntity.class, id);
     }

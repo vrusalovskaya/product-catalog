@@ -14,12 +14,10 @@ import org.catalog.records.ProductSummary;
 import org.catalog.records.Review;
 import org.catalog.repositories.CategoryRepository;
 import org.catalog.repositories.ProductRepository;
-import org.catalog.repositories.WarehouseInventoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,7 +25,6 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
-    private final WarehouseInventoryRepository inventoryRepository;
     private final ProductMapper productMapper;
 
     @Override
@@ -74,8 +71,13 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product save(Product product) {
-       ProductEntity savedEntity = productRepository.save(productMapper.toEntity(product));
-       return productMapper.toProduct(savedEntity);
+        ProductEntity entity = productMapper.toEntity(product);
+
+        CategoryEntity categoryRef = categoryRepository.getReference(product.category().id());
+        entity.setCategoryEntity(categoryRef);
+
+        ProductEntity saved = productRepository.save(entity);
+        return productMapper.toProduct(saved);
     }
 
     @Override
@@ -91,8 +93,9 @@ public class ProductServiceImpl implements ProductService {
         CategoryEntity categoryReference = categoryRepository.getReference(product.category().id());
         loadedEntity.setCategoryEntity(categoryReference);
 
-        WarehouseInventoryEntity inventoryReference = inventoryRepository.getReference(product.id());
-        loadedEntity.setInventoryEntity(inventoryReference);
+        WarehouseInventoryEntity inventory = loadedEntity.getInventoryEntity();
+        inventory.setQuantity(product.inventory().quantity());
+        inventory.setLocation(product.inventory().location());
 
         updateReviews(product, loadedEntity);
 

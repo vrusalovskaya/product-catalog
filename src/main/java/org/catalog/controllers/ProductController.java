@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/products")
+@RequestMapping("/api/v1/products")
 public class ProductController {
 
     private final ProductService productService;
@@ -53,7 +53,7 @@ public class ProductController {
 
     @PutMapping
     public ResponseEntity<Product> update(@RequestBody Product product) {
-        Product updatedProduct = productService.save(product);
+        Product updatedProduct = productService.update(product);
         return ResponseEntity.ok(updatedProduct);
     }
 

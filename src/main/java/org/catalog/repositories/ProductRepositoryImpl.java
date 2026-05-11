@@ -56,7 +56,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         List<Predicate> predicates = parseCriteria(criteria, cb, root);
 
-        cq.where(predicates.toArray(new Predicate[0]));
+        cq.where(predicates.toArray(new Predicate[0])).distinct(true);
 
         return session.createSelectionQuery(cq).getResultList();
     }
@@ -130,7 +130,9 @@ public class ProductRepositoryImpl implements ProductRepository {
         List<Predicate> predicates = new ArrayList<>();
 
         if (criteria.name() != null) {
-            predicates.add(cb.like(root.get(ProductEntity_.name), "%" + criteria.name() + "%"));
+            predicates.add(cb.like(
+                    cb.lower(root.get(ProductEntity_.name)),
+                    "%" + criteria.name().toLowerCase() + "%"));
         }
 
         if (criteria.minPrice() != null) {

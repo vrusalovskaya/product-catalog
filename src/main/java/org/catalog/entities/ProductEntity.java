@@ -49,4 +49,12 @@ public class ProductEntity {
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "product_id")
     private List<ReviewEntity> reviewEntities = new ArrayList<>();
+
+    public void setInventoryEntity(WarehouseInventoryEntity inventory) {
+        this.inventoryEntity = inventory;
+
+        if (inventory != null) {
+            inventory.setProductEntity(this);
+        }
+    }
 }

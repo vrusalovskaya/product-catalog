@@ -22,9 +22,6 @@ public interface ProductMapper {
 
     List<Product> toProductList(List<ProductEntity> entities);
 
-    @Mapping(target = "categoryName", source = "categoryEntity.name")
-    ProductSummary toSummary(ProductEntity entity);
-
     @Mapping(target = "categoryEntity", source = "category")
     @Mapping(target = "inventoryEntity", source = "inventory")
     @Mapping(target = "reviewEntities", source = "reviews")
