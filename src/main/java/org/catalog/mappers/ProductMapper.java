@@ -2,7 +2,6 @@ package org.catalog.mappers;
 
 import org.catalog.entities.ProductEntity;
 import org.catalog.records.Product;
-import org.catalog.records.ProductSummary;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
