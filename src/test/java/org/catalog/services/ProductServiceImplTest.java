@@ -3,12 +3,7 @@ package org.catalog.services;
 import jakarta.persistence.EntityNotFoundException;
 import org.catalog.entities.CategoryEntity;
 import org.catalog.entities.ProductEntity;
-import org.catalog.records.Category;
-import org.catalog.records.Product;
-import org.catalog.records.ProductSearchCriteria;
-import org.catalog.records.ProductSummary;
-import org.catalog.records.Review;
-import org.catalog.records.WarehouseInventory;
+import org.catalog.records.*;
 import org.catalog.testsupport.AbstractIntegrationTest;
 import org.catalog.testsupport.TestData;
 import org.hibernate.Session;
@@ -140,59 +135,34 @@ class ProductServiceImplTest extends AbstractIntegrationTest {
         });
     }
 
+
     @Test
     @DisplayName("update mutates name, price and adds new reviews")
-    void update_changesScalarFieldsAndAddsReview() {
+    void update_changesScalarFields() {
         Long id = seedLaptopWithReview();
 
         Product fetched = productService.findById(id);
+        Long fetchedId = fetched.id();
 
         Product mutated = new Product(
-                fetched.id(),
+                fetchedId,
                 "ThinkPad X1 Carbon",
                 new BigDecimal("1700.00"),
                 fetched.sku(),
                 fetched.category(),
                 fetched.inventory(),
-                List.of(
-                        fetched.reviews().getFirst(),
-                        new Review(null, "Solid keyboard", 4)
-                )
+                fetched.reviews()
         );
 
-        Product updated = productService.update(mutated);
+        Product updated = productService.update(fetchedId, mutated);
 
         assertThat(updated.name()).isEqualTo("ThinkPad X1 Carbon");
         assertThat(updated.price()).isEqualByComparingTo("1700.00");
-        assertThat(updated.reviews()).hasSize(2);
 
         Product reloaded = productService.findById(id);
         assertThat(reloaded.name()).isEqualTo("ThinkPad X1 Carbon");
-        assertThat(reloaded.reviews()).hasSize(2);
     }
 
-    @Test
-    @DisplayName("update removes reviews that are no longer present in the input")
-    void update_removesMissingReviews() {
-        Long id = seedLaptopWithReview();
-        Product fetched = productService.findById(id);
-        assertThat(fetched.reviews()).hasSize(1);
-
-        Product withoutReviews = new Product(
-                fetched.id(),
-                fetched.name(),
-                fetched.price(),
-                fetched.sku(),
-                fetched.category(),
-                fetched.inventory(),
-                List.of()
-        );
-
-        productService.update(withoutReviews);
-
-        Product reloaded = productService.findById(id);
-        assertThat(reloaded.reviews()).isEmpty();
-    }
 
     @Test
     @DisplayName("update throws EntityNotFoundException when product does not exist")
@@ -204,7 +174,7 @@ class ProductServiceImplTest extends AbstractIntegrationTest {
                 List.of()
         );
 
-        assertThatThrownBy(() -> productService.update(ghost))
+        assertThatThrownBy(() -> productService.update(404L, ghost))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
@@ -226,7 +196,7 @@ class ProductServiceImplTest extends AbstractIntegrationTest {
             s.persist(electronics);
             ProductEntity laptop = TestData.product("ThinkPad X1", "TP-X1-2026",
                     new BigDecimal("1500.00"), electronics);
-            laptop.getReviewEntities().add(TestData.review("Best business laptop!", 5));
+            laptop.addReviewEntity(TestData.review("Best business laptop!", 5, laptop));
             s.persist(laptop);
             return laptop.getId();
         });
@@ -245,13 +215,13 @@ class ProductServiceImplTest extends AbstractIntegrationTest {
 
             ProductEntity laptop = TestData.product("ThinkPad X1", "TP-X1-2026",
                     new BigDecimal("1500.00"), laptops);
-            laptop.getReviewEntities().add(TestData.review("Loved it", 5));
+            laptop.addReviewEntity(TestData.review("Loved it", 5, laptop));
             laptop.getInventoryEntity().setQuantity(60);
             s.persist(laptop);
 
             ProductEntity mouse = TestData.product("Logi Mouse", "MOUSE-1",
                     new BigDecimal("299.00"), peripherals);
-            mouse.getReviewEntities().add(TestData.review("Average", 3));
+            mouse.addReviewEntity(TestData.review("Average", 3, laptop));
             mouse.getInventoryEntity().setQuantity(5);
             s.persist(mouse);
         });

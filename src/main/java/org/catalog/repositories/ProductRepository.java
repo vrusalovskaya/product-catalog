@@ -1,8 +1,8 @@
 package org.catalog.repositories;
 
-import jakarta.persistence.Tuple;
 import org.catalog.entities.ProductEntity;
 import org.catalog.records.ProductSearchCriteria;
+import org.catalog.records.ProductSummary;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +18,7 @@ public interface ProductRepository {
 
     List<ProductEntity> findTopRated(int limit);
 
-    List<Tuple> getProductSummaries();
+    List<ProductSummary> getProductSummaries();
 
     ProductEntity save(ProductEntity entity);
 

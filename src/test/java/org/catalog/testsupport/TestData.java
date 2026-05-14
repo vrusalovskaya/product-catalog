@@ -39,10 +39,11 @@ public final class TestData {
         return p;
     }
 
-    public static ReviewEntity review(String content, int rating) {
+    public static ReviewEntity review(String content, int rating, ProductEntity product) {
         ReviewEntity r = new ReviewEntity();
         r.setContent(content);
         r.setRating(rating);
+        r.setProductEntity(product);
         return r;
     }
 }

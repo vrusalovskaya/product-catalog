@@ -46,8 +46,11 @@ public class ProductEntity {
     @OneToOne(mappedBy = "productEntity", cascade = CascadeType.ALL)
     private WarehouseInventoryEntity inventoryEntity;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "product_id")
+    @OneToMany(
+            mappedBy = "productEntity",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<ReviewEntity> reviewEntities = new ArrayList<>();
 
     public void setInventoryEntity(WarehouseInventoryEntity inventory) {
@@ -55,6 +58,14 @@ public class ProductEntity {
 
         if (inventory != null) {
             inventory.setProductEntity(this);
+        }
+    }
+
+    public void addReviewEntity(ReviewEntity reviewEntity) {
+        this.reviewEntities.add(reviewEntity);
+
+        if (reviewEntity != null) {
+            reviewEntity.setProductEntity(this);
         }
     }
 }

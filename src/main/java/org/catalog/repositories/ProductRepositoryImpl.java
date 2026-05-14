@@ -1,11 +1,11 @@
 package org.catalog.repositories;
 
 import jakarta.persistence.EntityGraph;
-import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.*;
 import lombok.AllArgsConstructor;
 import org.catalog.entities.*;
 import org.catalog.records.ProductSearchCriteria;
+import org.catalog.records.ProductSummary;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
@@ -87,24 +87,25 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public List<Tuple> getProductSummaries() {
+    public List<ProductSummary> getProductSummaries() {
         Session session = sessionFactory.getCurrentSession();
 
         CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+        CriteriaQuery<ProductSummary> cq = cb.createQuery(ProductSummary.class);
         Root<ProductEntity> product = cq.from(ProductEntity.class);
 
         Join<ProductEntity, CategoryEntity> category = product.join(ProductEntity_.categoryEntity);
 
-        cq.multiselect(
-                product.get(ProductEntity_.id).alias("id"),
-                product.get(ProductEntity_.name).alias("productName"),
-                product.get(ProductEntity_.price).alias("productPrice"),
-                product.get(ProductEntity_.sku).alias("sku"),
-                category.get(CategoryEntity_.name).alias("categoryName")
-        );
+        cq.select(cb.construct(
+                ProductSummary.class,
+                product.get(ProductEntity_.id),
+                product.get(ProductEntity_.name),
+                product.get(ProductEntity_.price),
+                product.get(ProductEntity_.sku),
+                category.get(CategoryEntity_.name)
+        ));
 
-        return session.createSelectionQuery(cq)
+        return session.createQuery(cq)
                 .setCacheable(true)
                 .getResultList();
     }

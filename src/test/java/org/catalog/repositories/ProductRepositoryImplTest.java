@@ -1,10 +1,10 @@
 package org.catalog.repositories;
 
-import jakarta.persistence.Tuple;
 import org.catalog.entities.CategoryEntity;
 import org.catalog.entities.ProductEntity;
 import org.catalog.entities.ReviewEntity;
 import org.catalog.records.ProductSearchCriteria;
+import org.catalog.records.ProductSummary;
 import org.catalog.testsupport.AbstractIntegrationTest;
 import org.catalog.testsupport.TestData;
 import org.hibernate.Session;
@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ProductRepositoryImplTest extends AbstractIntegrationTest {
 
@@ -170,13 +171,13 @@ class ProductRepositoryImplTest extends AbstractIntegrationTest {
 
             ProductEntity high = TestData.product("High-rated", "HR-1",
                     new BigDecimal("100.00"), cat);
-            high.getReviewEntities().add(TestData.review("great", 5));
-            high.getReviewEntities().add(TestData.review("nice", 5));
+            high.addReviewEntity(TestData.review("great", 5, high));
+            high.addReviewEntity(TestData.review("nice", 5, high));
             s.persist(high);
 
             ProductEntity low = TestData.product("Low-rated", "LR-1",
                     new BigDecimal("100.00"), cat);
-            low.getReviewEntities().add(TestData.review("ok", 2));
+            low.addReviewEntity(TestData.review("ok", 2, low));
             s.persist(low);
         });
 
@@ -202,18 +203,17 @@ class ProductRepositoryImplTest extends AbstractIntegrationTest {
         seedTwoProducts();
 
         transactionTemplate.executeWithoutResult(status -> {
-            List<Tuple> tuples = productRepository.getProductSummaries();
-            assertThat(tuples).hasSize(2);
+            List<ProductSummary> summaries = productRepository.getProductSummaries();
+            assertThat(summaries).hasSize(2);
 
-            Tuple t = tuples.stream()
-                    .filter(row -> "TP-X1-2026".equals(row.get("sku", String.class)))
+            ProductSummary s = summaries.stream()
+                    .filter(ps -> "TP-X1-2026".equals(ps.sku()))
                     .findFirst()
                     .orElseThrow();
 
-            assertThat(t.get("productName", String.class)).isEqualTo("ThinkPad X1");
-            assertThat(t.get("productPrice", BigDecimal.class))
-                    .isEqualByComparingTo("1500.00");
-            assertThat(t.get("categoryName", String.class)).isEqualTo("Laptops");
+            assertEquals("ThinkPad X1", s.name());
+            assertEquals(new BigDecimal("1500.00"), s.price());
+            assertEquals("Laptops", s.categoryName());
         });
     }
 
@@ -271,9 +271,9 @@ class ProductRepositoryImplTest extends AbstractIntegrationTest {
 
             ProductEntity laptop = TestData.product("ThinkPad X1", "TP-X1-2026",
                     new BigDecimal("1500.00"), electronics);
-            ReviewEntity review = TestData.review("Best business laptop!", 5);
-            laptop.getReviewEntities().add(review);
             s.persist(laptop);
+            ReviewEntity review = TestData.review("Best business laptop!", 5, laptop);
+            laptop.addReviewEntity(review);
 
             return laptop.getId();
         });

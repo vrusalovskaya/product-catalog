@@ -1,23 +1,17 @@
 package org.catalog.services;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.Tuple;
 import lombok.AllArgsConstructor;
 import org.catalog.entities.CategoryEntity;
 import org.catalog.entities.ProductEntity;
-import org.catalog.entities.ReviewEntity;
 import org.catalog.entities.WarehouseInventoryEntity;
 import org.catalog.mappers.ProductMapper;
-import org.catalog.records.Product;
-import org.catalog.records.ProductSearchCriteria;
-import org.catalog.records.ProductSummary;
-import org.catalog.records.Review;
+import org.catalog.records.*;
 import org.catalog.repositories.CategoryRepository;
 import org.catalog.repositories.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -32,7 +26,7 @@ public class ProductServiceImpl implements ProductService {
     public Product findById(Long id) {
         ProductEntity entity = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
-        return productMapper.toProduct(entity);
+        return productMapper.toRecord(entity);
     }
 
     @Override
@@ -40,7 +34,7 @@ public class ProductServiceImpl implements ProductService {
     public Product findBySku(String sku) {
         ProductEntity entity = productRepository.findBySku(sku)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
-        return productMapper.toProduct(entity);
+        return productMapper.toRecord(entity);
     }
 
     @Override
@@ -58,14 +52,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductSummary> getProductSummaries() {
-        List<Tuple> rows = productRepository.getProductSummaries();
-        return rows.stream().map(row -> new ProductSummary(
-                row.get("id", Long.class),
-                row.get("productName", String.class),
-                row.get("productPrice", BigDecimal.class),
-                row.get("sku", String.class),
-                row.get("categoryName", String.class)
-        )).toList();
+        return productRepository.getProductSummaries();
     }
 
     @Override
@@ -77,13 +64,13 @@ public class ProductServiceImpl implements ProductService {
         entity.setCategoryEntity(categoryRef);
 
         ProductEntity saved = productRepository.save(entity);
-        return productMapper.toProduct(saved);
+        return productMapper.toRecord(saved);
     }
 
     @Override
     @Transactional
-    public Product update(Product product) {
-        ProductEntity loadedEntity = productRepository.findWithFetch(product.id())
+    public Product update(Long id, Product product) {
+        ProductEntity loadedEntity = productRepository.findWithFetch(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
 
         loadedEntity.setName(product.name());
@@ -97,9 +84,7 @@ public class ProductServiceImpl implements ProductService {
         inventory.setQuantity(product.inventory().quantity());
         inventory.setLocation(product.inventory().location());
 
-        updateReviews(product, loadedEntity);
-
-        return productMapper.toProduct(loadedEntity);
+        return productMapper.toRecord(loadedEntity);
     }
 
     @Override
@@ -108,30 +93,4 @@ public class ProductServiceImpl implements ProductService {
         productRepository.delete(id);
     }
 
-    private void updateReviews(Product product, ProductEntity loadedEntity) {
-        List<ReviewEntity> current = loadedEntity.getReviewEntities();
-        List<Review> updated = product.reviews();
-
-        current.removeIf(existing -> updated.stream()
-                .noneMatch(r -> r.id().equals(existing.getId())));
-
-        for (Review review : updated) {
-            if (review.id() == null) {
-                ReviewEntity reviewEntity = new ReviewEntity();
-                reviewEntity.setContent(review.content());
-                reviewEntity.setRating(review.rating());
-                current.add(reviewEntity);
-            }
-        }
-
-        for (ReviewEntity reviewEntity : current) {
-            updated.stream()
-                    .filter(r -> r.id() != null && r.id().equals(reviewEntity.getId()))
-                    .findFirst()
-                    .ifPresent(r -> {
-                        reviewEntity.setContent(r.content());
-                        reviewEntity.setRating(r.rating());
-                    });
-        }
-    }
 }

@@ -1,6 +1,8 @@
 package org.catalog.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.catalog.dtos.ProductDto;
+import org.catalog.mappers.ProductMapper;
 import org.catalog.records.Product;
 import org.catalog.records.ProductSearchCriteria;
 import org.catalog.records.ProductSummary;
@@ -17,6 +19,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductMapper productMapper;
 
     @GetMapping("/{id}")
     public Product get(@PathVariable Long id) {
@@ -44,16 +47,17 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<Product> create(@RequestBody Product product) {
-        Product savedProduct = productService.save(product);
+    public ResponseEntity<Product> create(@RequestBody ProductDto productDto) {
+
+        Product savedProduct = productService.save(productMapper.toRecord(productDto));
 
         URI location = URI.create(String.format("/api/v1/products/%d", savedProduct.id()));
         return ResponseEntity.created(location).body(savedProduct);
     }
 
-    @PutMapping
-    public ResponseEntity<Product> update(@RequestBody Product product) {
-        Product updatedProduct = productService.update(product);
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> update(@PathVariable Long id, @RequestBody ProductDto productDto) {
+        Product updatedProduct = productService.update(id, productMapper.toRecord(productDto));
         return ResponseEntity.ok(updatedProduct);
     }
 

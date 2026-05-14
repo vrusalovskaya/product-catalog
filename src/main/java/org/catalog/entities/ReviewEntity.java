@@ -24,4 +24,7 @@ public class ReviewEntity {
     @Column(nullable = false)
     private Integer rating;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private ProductEntity productEntity;
 }

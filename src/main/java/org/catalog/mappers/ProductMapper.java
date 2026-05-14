@@ -1,5 +1,6 @@
 package org.catalog.mappers;
 
+import org.catalog.dtos.ProductDto;
 import org.catalog.entities.ProductEntity;
 import org.catalog.records.Product;
 import org.mapstruct.Mapper;
@@ -17,7 +18,7 @@ public interface ProductMapper {
     @Mapping(target = "category", source = "categoryEntity")
     @Mapping(target = "inventory", source = "inventoryEntity")
     @Mapping(target = "reviews", source = "reviewEntities")
-    Product toProduct(ProductEntity entity);
+    Product toRecord(ProductEntity entity);
 
     List<Product> toProductList(List<ProductEntity> entities);
 
@@ -25,4 +26,6 @@ public interface ProductMapper {
     @Mapping(target = "inventoryEntity", source = "inventory")
     @Mapping(target = "reviewEntities", source = "reviews")
     ProductEntity toEntity(Product product);
+
+    Product toRecord(ProductDto productDto);
 }
